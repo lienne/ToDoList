@@ -1,0 +1,65 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using System.Collections.ObjectModel
+@using ToDoAppWeb.Models
+
+<h3>To-Do List</h3>
+
+<div class="todo-container">
+    <!-- Task Input and Add Button -->
+    <input @bind="NewTask" placeholder="Enter a task" />
+    <button @onclick="AddTask">Add Task</button>
+
+    <!-- Task List Display -->
+    <ul>
+        @foreach (var task in Tasks)
+        {
+            <li class="@(task.IsRemoving ? "removed" : "added")">
+                <input type="checkbox" @bind="task.IsComplete" />
+                <span class="task-text @GetTaskClass(task)">@task.Title</span>
+                <button class="delete-btn" @onclick="() => MarkForRemoval(task)">Delete</button>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private string NewTask = string.Empty;
+    private ObservableCollection<TaskModel> Tasks = new();
+
+    // Add Task Method
+    private void AddTask()
+    {
+        Console.WriteLine($"AddTask called with: {NewTask}");
+        if (!string.IsNullOrWhiteSpace(NewTask))
+        {
+            Tasks.Add(new TaskModel { Title = NewTask });
+            NewTask = string.Empty;
+            StateHasChanged();
+            Console.WriteLine("Task added successfully");
+        }
+    }
+
+    // Delete Task Method
+    private void DeleteTask(TaskModel task)
+    {
+        if (Tasks.Contains(task))
+        {
+            Tasks.Remove(task);
+            Console.WriteLine($"Deleted task: {task.Title}");
+        }
+    }
+
+    // Task CSS Helper
+    private string GetTaskClass(TaskModel task)
+    {
+        return task.IsComplete ? "completed" : string.Empty;
+    }
+
+    private void MarkForRemoval(TaskModel task)
+    {
+        task.IsRemoving = true;
+        StateHasChanged();
+        Task.Delay(400).ContinueWith(_ => DeleteTask(task));
+    }
+}
